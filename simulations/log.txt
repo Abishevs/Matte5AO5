@@ -1,0 +1,11 @@
+Definite Integral from a to b : -190000*pi*(-log(a + 2)/3 + 4*log(a + 8)/3) + 190000*pi*(-log(b + 2)/3 + 4*log(b + 8)/3)
+-190000*pi*(-ln(a + 2)/3 + 4*ln(a + 8)/3) + 190000*pi*(-ln(b + 2)/3 + 4*ln(b + 8)/3)
+-190000*pi*(-ln(0 + 2)/3 + 4*ln(0 + 8)/3) + 190000*pi*(-ln(5 + 2)/3 + 4*ln(5 + 8)/3)
+
+Indefinite Integral: 190000*pi*(-log(x + 2)/3 + 4*log(x + 8)/3)
+
+Definite Integral from 0 to 5 : -190000*pi*(-log(2)/3 + 4*log(8)/3) + 190000*pi*(-log(7)/3 + 4*log(13)/3)
+Numerical result: 137142.013348544
+
+Definite Integral from 5 to 10 : -190000*pi*(-log(7)/3 + 4*log(13)/3) + 190000*pi*(-log(12)/3 + 4*log(18)/3)
+Numerical result: 151751.166060689
