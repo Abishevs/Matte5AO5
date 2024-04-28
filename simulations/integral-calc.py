@@ -29,7 +29,7 @@ if __name__ == "__main__":
     # print("Definite Integral from", a, "to", b, ":", definite_integral)
 
     a = 0  
-    b = 5 
+    b = 1 
     definite_integral = sp.integrate(function, (x, a, b))
     print("Definite Integral from", a, "to", b, ":", definite_integral)
 
@@ -37,10 +37,15 @@ if __name__ == "__main__":
     numeric_result = definite_integral.evalf()
     print("Numerical result:", numeric_result)
 
-    a = 5  
+    a = 4  
+    b = 6 
+    definite_integral = sp.integrate(function, (x, a, b))
+    print("Definite Integral from", a, "to", b, ":", definite_integral.evalf())
+
+    a = 9  
     b = 10 
     definite_integral = sp.integrate(function, (x, a, b))
-    print("Definite Integral from", a, "to", b, ":", definite_integral)
+    print("Definite Integral from", a, "to", b, ":", definite_integral.evalf())
 
     # To get a floating-point number if necessary
     numeric_result = definite_integral.evalf()

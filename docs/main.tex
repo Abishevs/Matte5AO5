@@ -1,8 +1,8 @@
 \documentclass{article}
-
 \usepackage[utf8]{inputenc} 
 % \usepackage[swedish]{babel} 
 \usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{siunitx}
 \usepackage{geometry} 
 \usepackage{graphicx} 
 \usepackage{hyperref} 
@@ -12,6 +12,7 @@
 \usepackage{tikz}
 \usepackage{tcolorbox}
 \usepackage{pgfplots}
+\usepackage{listings}
 \pgfplotsset{compat=newest}
 
 \geometry{a4paper, margin=1in}
@@ -22,8 +23,8 @@
 \tcolorboxenvironment{proposition}{
   boxrule=0pt,
   boxsep=2mm,
-  colback={orange!10}, % Light orange background
-  colframe={orange!50}, % Darker orange frame
+  colback={black!10}, % Light orange background
+  colframe={black!50}, % Darker orange frame
   coltitle=blacf(x),
   enhanced,
   sharp corners,
@@ -47,11 +48,12 @@ f(x) = \frac{95\,000}{x^2 + 10x + 16}
 där $y$ är antalet människor per kvadratkilometer.
 
 Uppgiften handlar om att beräkna hur många människor som bor inom en radie från
-centrum.
+centrum. Dvs att teckna ett radial area uttryck, given en täthetsfunktion
+beräkna befolkningen vid givna gränser \( a \) och \( b \).
 
-\noindent
-\subsection*{Givet}
-Av uppgiften ett ledtråd. att teckna ett uttryck.
+% \noindent
+% \subsection*{Givet}
+% Av uppgiften ett ledtråd. att teckna ett uttryck.
 
 \noindent
 \subsection*{Sökt}
@@ -61,16 +63,19 @@ Av uppgiften ett ledtråd. att teckna ett uttryck.
 \end{enumerate}
 
 \begin{proposition}[Befolkningsmodell inom en radie från centrum] Given nedre
-	gräns \( a \) och övre gräns \( b \) där \( a,b \in \mathbb{R}^+ \)
-	gäller modellen: \begin{align*}
-		&\int_{a}^{b} \left(f(x) \cdot 2\pi x\right) \, dx
+	gräns \( a \) och övre gräns \( b \) i km, där \( 0 \le a < b \le 10 \) och
+	\( a, b \in \mathbb{R}^+ \) därmed gäller modellen: \begin{align*}
+		g(a,b) &= \int_{a}^{b} \left(f(x) \cdot 2\pi x\right) \, dx
 		= \int_{a}^{b} \frac{95\,000 \cdot 2\pi x}{x^2 + 10x + 16} \, dx
-		\Rightarrow g(a,b) \\
-		&g(a,b) = \frac{190\,000 \pi}{3}
+		  \\
+		&= \frac{190\,000 \pi}{3}
 		\left(4\ln{\left(\frac{b + 8}{a + 8}\right)} 
 			-
 		\ln{\left(\frac{b + 2}{a + 2}\right)} \right)
 	\end{align*}
+	Motivering av \( b_\max \, = 10 \) är av att i uppgiten är det inte givet
+	i vilken interval \( f(x) \) ger godtycklig approximation, därmed togs
+valet att ha gränsen vid högsta efterfrågade värden som är \( 10 \) km.
 \end{proposition}
 
 \begin{proof}
@@ -79,62 +84,78 @@ b \) ska integrerings processen härledas, samt resultatet av godtyckliga tal
 jämföras med approxomitiv lössning med hjälp av digitala hjälp medel (Python
 program).
 
-\textbf{Steg 1} Riemannsumma
+Ett metod att göra detta är att teckna ett uttryck för ett litet cirklesegment för
+att beräkna radial area. Sedan multiplicera den area med
+befolkningstäthetsfunktionen och som sist summera alla små cirkleringar mellan
+gränserna \( a \) och \( b \).
+
+\textbf{Steg 1. Teckna ett uttryck för area av små cirkel segment} \\
 	% Circle bild
-	\begin{center}
+	\begin{figure}[h]
+	\centering
+	\label{fig:summa}
 	\begin{tikzpicture}
 	% Define radii
-	\def\rBig{2}
-	\def\rSmall{1}
+	\def\rBig{1}
+	\def\rSmall{0.5}
 
 
 	% Draw the outer circle
-	\filldraw[color=red, fill=red!5, very thick] (0,0) circle (\rBig);
+	\filldraw[color=grey, fill=red!5, very thick] (0,0) circle (\rBig);
 
 	% Draw the inner circle
-	\filldraw[color=red!60, fill=white, very thick] (0,0) circle (\rSmall);
+	\filldraw[color=grey, fill=white, very thick] (0,0) circle (\rSmall);
 
 	% Draw origo
 	\filldraw[color=black] (0,0) circle (1.5pt);
 
 	% Draw the segment indicating \Delta x
-	\draw[thick] (\rSmall,0) -- (\rBig,0) node[midway, below] {$\Delta x$};
+	\draw[thick] (\rSmall,0) -- (\rBig,0) node[right] {$\Delta x$};
 	
 	% radie and annotiations
-	\draw[thick] (0,0) -- (-2,0) node[left] {$x$};
+	\draw[thick] (0,0) -- (-1,0) node[left] {$x$};
 
-	% Calculate middle point for the arrow
-	\path (3,0) -- (5,0) coordinate[midway] (midpoint);
+	\draw [-latex, line width=0.5mm] (3,0) -- (4,0);
 
-	% \draw[thick] (7,-\rSmall/2) rectangle (10,\rSmall/2);
-	    % Define the coordinates for the rectangle
-	\def\width{3}   % Width of the rectangle
-	\def\height{1}  % Height of the rectangle
-	\def\xstart{7}  % X coordinate of the starting point
-	\def\ystart{-0.5} % Y coordinate of the starting point
+	\draw[thick, fill=red!5] (6,-\rSmall/2) rectangle (9,\rSmall/2);
+	\node at (7.5, -\rSmall/2 - 0.3) {$2\pi\/x$}; 
+	\node at (6 - 0.3, 0) [left] {$\Delta x$};  
 
-	% Horizontal lines (black)
-	\draw[thick, red] (\xstart, \ystart) -- (\xstart + \width, \ystart); % Bottom
-	\draw[thick, red] (\xstart, \ystart + \height) -- (\xstart + \width, \ystart + \height); % Top
-
-	% Vertical lines (red)
-	\draw[thick] (\xstart, \ystart) -- (\xstart, \ystart + \height); % Left
-	\draw[thick] (\xstart + \width, \ystart) -- (\xstart + \width, \ystart + \height); % Right
-	\node at (8.5, -\rSmall/2 - 0.3) {$2\pi\/x$}; 
-	\node at (7 - 0.3, 0) [left] {$\Delta x$};  
 	\end{tikzpicture}
-	\end{center}
+	% \caption{Ilustatration hur cirklsegment kan beskrivas som ett rektangle}
+	\end{figure}
+Låt \( x \) vara avstånd från centrum av en storstad dvs radie och \( \Delta x
+\) ett litet avstånd in mot centrum. Matematiskt kan detta sammband beskrivas
+som area \( A \),  där \( 2 \pi x \) är cirkel segments omkrets och \( \Delta x
+\) tjockleken eller höjden 
+\begin{align*}
+	A = 2\pi x \cdot \Delta x
+\end{align*}
 
-	\begin{align*}
-		S \approx \sum_{k=a}^{b} {f(x_k) 2 \pi \cdot \Delta x}
-		% \lim_{\Delta x\to 0} \sum_{a}^{b}  \big( f(x) \cdot 2\pi x \cdot \Delta x\big) &=
-		% \lim_{\Delta x\to 0} \Bigg(\frac{95\,000 \cdot 2\pi x}{x^2 + 10x + 16} \cdot \Delta x \Bigg)  \\
-	\end{align*}
+\textbf{Steg 1.1 Teckna ett uttryck av befolkningen} \\
+Given täthetsfunktionen \( f(x) \) multiplicerat med radial area uttryck \( A
+\), ger detta ihop antal \( M \) människor  i den radiala området \( x \) km från
+centrum.
+\begin{align*}
+	M = f(x) \cdot A
+\end{align*}
 
-\textbf{Steg 2:} Låter vi $\Delta x \to 0$ övergår Reimannsumma till ett
-integral
-% Skriv uttrcyket för summan av små "cirkleringar" till ettintegral kalkyl
-	
+\textbf{Steg 1.2. Approximation med Riemannsumma} \\
+Låt S vara summa av alla människor \( M \) i intervallet från \( a \) till \( b \).
+Sedan låt \( \Delta x = \frac{b-a}{n} \) och \( x_i \) var definerat som \( x_i
+= a + i \Delta x \) för \( i = 0, 1, 2, \ldots, n \). Därmed Reimannsumma kan
+approximera arean under kurvan \( M \):
+\begin{align*}
+S = \sum_{i=0}^{n} f(x_i) \cdot 2 \pi x_i \cdot \Delta x
+\end{align*}
+Låt nu \( \Delta x \to 0 \) därefter övergår  Reimannsumma till ett bestämd integral, 
+\begin{align*}
+	\lim_{\Delta x \to 0} \sum_{i=0}^{\infty} f(x_i) \cdot 2 \pi x_i \cdot \Delta x &=\int_{a}^{b}{\left(f(x) \cdot 2\pi x\right) \, dx } \\
+\end{align*}
+
+\textbf{Steg 2. Beräkna bestämd integral} \\ 
+Låt nu \( g(a, b) \) vara ett funktion till bestämd integral mellan gränserna
+\( a \) och \( b \)
 \begin{align*}
 	g(a,b) &=\int_{a}^{b}{\left(f(x) \cdot 2\pi x\right) \, dx } \\
 	       &= \int_{a}^{b}{\left(\frac{95\, 000 \cdot 2 \pi x}{x^2 + 10x + 16}\right) \, dx } \\
@@ -145,18 +166,20 @@ integral
 	&&\text{(Faktorisera nämnaren)} \\
 	&= 190\, 000 \pi \int_{a}^{b}{\left(\frac{A}{(x + 8)} + \frac{B}{(x + 2)}\right) \,
 	dx }
-	&&\text{(2.1 Simplifiera)} \\
+	&&\text{(Simplifiera genom 2.1)} \\
 \end{align*}
 
 \indent
-\textbf{Steg 2.1 Partialbråkupdelning}
+\textbf{Steg 2.1. Partialbråkupdelning}
 \begin{align*}
 	\frac{x}{(x + 8)(x + 2)} &= \frac{A}{x +8} + \frac{B}{x + 2} \\
 				 &= \frac{A(x + 2)}{(x + 8)(x + 2)} + \frac{B(x
-				 + 8)}{(x + 8)(x + 2)} \\
-				 &= \frac{Ax + 2A + Bx + 8B}{(x + 8)(x + 2)} \\
+				 + 8)}{(x + 8)(x + 2)}
+				 &&\text{(Förläng bråk)}\\
+				 &= \frac{Ax + 2A + Bx + 8B}{(x + 8)(x + 2)} 
+				 &&\text{(Utveckla täljare)}\\
 				 &= \frac{x(A + B) + 2A + 8B}{(x + 8)(x + 2)}
-				 \\
+				 &&\text{(Faktorisera ut gemensam \( x \) )} \\
 \end{align*}
 % \indent
 För att lösa ut täljaren \( A \) och \( B \) kan en enkelt ekvationssytem
@@ -164,13 +187,14 @@ defineras, där ekvationen (i) tillhör till antal \( x \)  i ursrungliga bråke
 täljare och (ii) till konstanterna.
 \begin{align*}
 	\begin{cases}
-		A + B = 1 &(i) \\
+		A + B = 1 \\
 		2A + 8B = 0 &(ii) 
 	\end{cases}
 \end{align*}
 Ekvationen (i) omvandlas till $A = 1 - B$ och sedan sätts in i ekvationen (ii)
 \begin{align*}
-	&2(1 - B) + 8B = 0 \\
+	&2A + 8B = 0 \\
+	&2(1 - B) + 8B = 0 \\ % &&\text{(Sätt (i) i (ii) )} \\
 	&2 - 2B + 8B = 0 \\
 	&6B =  -2 \\
 	&B = -\frac{1}{3} \\
@@ -189,7 +213,7 @@ Lössningen till ekvationssystemet är
 	\end{cases}
 \end{align*}
 
-\textbf{Steg 2.2 Lössningar till \( A \) och \( B \) sätts i integralen}
+\textbf{Steg 2.2. Lössningar till \( A \) och \( B \) sätts i integralen}
 \begin{align*}
 	g(a,b) &= \int_{a}^{b}{\left(f(x) \cdot 2\pi x\right) \, dx }\\
 	       & \vdots \\
@@ -197,14 +221,16 @@ Lössningen till ekvationssystemet är
 	dx }  \\
 	&= 190\, 000 \pi \int_{a}^{b}{\left(\frac{\frac{4}{3}}{(x + 8)} 
 		+ \frac{-\frac{1}{3}}{(x + 2)}\right) \,
-	dx }  \\
-	&\text{bryt ut minus tecken utanför integralen} \\
+	dx }  
+	&&\text{(Bryt ut i två integraler)}
+	\\
 	&= 190\, 000 \pi \left(\int_{a}^{b}{\frac{\frac{4}{3}}{(x + 8)} \, dx} 
 		- \int_{a}^{b}{{\frac{\frac{1}{3}}{(x + 2)} \,
-	dx}\right) }  \\
+	dx}\right) }
+	&&\text{(bryt ut \( -1 \) från andra integral)} \\
 \end{align*}
 
-\textbf{Steg 2.3 beräkna första integralen}
+\textbf{Steg 2.3. Beräkna första integralen}
 \begin{align*}
 	\int_a^b \frac{\frac{4}{3}}{x + 8} \, dx 
 	&\Rightarrow \int_a^b \frac{a}{t} \, dt = \left[a\ln(|t|)\right]_a^b
@@ -215,7 +241,7 @@ Lössningen till ekvationssystemet är
 	-  \frac{4}{3} \cdot \ln{(|a + 8|)}
 	&& \text{(Sätt integrands gränser)} \\
 	&= \frac{4}{3} \cdot \left(\ln{(|b + 8)} - \ln{(|a + 8|)} \right) 
-	&&\text{Bryt ut } \frac{4}{3} \\
+	&& \left( \text{Bryt ut } \frac{4}{3} \right) \\
 	&\Rightarrow \ln(a) - \ln(b) = \ln{\left(\frac{a}{b}\right)} 
 	&&\text{(Logoritmiska egenskapen)} \\
 	&\Rightarrow \frac{4}{3} \cdot \ln{\left(\frac{|b + 8|}{|a + 8|}\right)} 
@@ -231,7 +257,7 @@ absolutbelopp utelämnas därmed gäller:
 	= \frac{4\ln\left(\frac{b + 8}{a + 8}\right)}{3}
 \]
 
-\textbf{Steg 2.4 beräkna andra integralen} \\
+\textbf{Steg 2.4. Beräkna andra integralen} \\
 Andra integralen beräknas på exakt samma sätt som första för att den är av
 
 samma sorts.
@@ -243,14 +269,16 @@ samma sorts.
 	&= \frac{\ln\left({\frac{{b + 2}}{{a + 2}}}\right)}{3} \\
 \end{align*}
 
-\textbf{Steg 2.5 sätt beräknade integralerna tillbaka}
+\textbf{Steg 2.5. Sätt beräknade integralerna tillbaka}
 \begin{align*}
-	g(a,b) &= \\
+	g(a,b) &= \int_{a}^{b}{\left(f(x) \cdot 2\pi x\right) \, dx } \\
 	       &\vdots \\
 	       &= 190\,000\pi \left( 
 \frac{4\ln{\left(\frac{b + 8}{a + 8}\right)}}{3}
 - \frac{\ln\left({\frac{{b + 2}}{{a + 2}}}\right)}{3}
-	       \right) \\
+	       \right) 
+	       &&\text{(Sätt in 2.3. och 2.4.)}
+	       \\
 	       &= 190\,000\pi \left( 
 		       \frac{4\ln{\left(\frac{b + 8}{a + 8}\right)}
 		       - \ln\left({\frac{b + 2}{a + 2}}\right)}
@@ -263,7 +291,7 @@ samma sorts.
 		       4\ln{\left(\frac{b + 8}{a + 8}\right)}
 		       - \ln\left({\frac{b + 2}{a + 2}}\right)
 	       \right)
-	       &&\text{(Faktorisera ut \( \frac{1}{3} \) )} \\
+	       &&\left( \text{Faktorisera ut \( \frac{1}{3} \)} \right) \\
 	       &= \frac{190\,000\pi}
 		       {3}  
 	       \left( 
@@ -272,8 +300,25 @@ samma sorts.
 	       \right)
 	       &&\text{(Simplifiera bråk)} \\
 \end{align*}
+
+\textbf{Steg 3. Verifiering av Påstånde 1.} \\
+3 Tester utfördes för att jämföra approximativa svaret med svaret som \( g(a,
+b) \) ger. I approximativa kaklyleringen med \( \Delta x = 0.00001 \) där 
+dator utförde kaklyleringen av \( S \), se Appendix \ref{app:python_code} för källkod.
+\begin{center}
+	\begin{tabular}{c|c|c|c}
+		$a$ & $b$ & $S$ & $g(a, b)$ \\
+		\hline\hline
+		0 & 1 & 13065.7 & 13065.6 \\
+		\hline
+		4 & 6 & 65444.9 & 65444.5 \\
+		\hline
+		9 & 10 & 28178.5 & 28178.2  \\
+	\end{tabular}
+\end{center}
 \end{proof}
 
+\newpage
 \section*{Lösning}
 \subsection*{Del (a)}
 Uppskatta hur många människor som bor inom en radie 5 km från centrum.
@@ -289,7 +334,8 @@ För att lösa problemet tillämpas funktion \( g(a,b) \) från Påstånde 1, d�
 	       &= \frac{760\,000\pi \cdot \ln{\left(\frac{13}{8}\right)}}{3} 
 	       - \frac{190\,000\pi \cdot \ln{\left(\frac{7}{2}\right)}}{3} 
 	       &&\text{(Exakta svaret)} \\
-	       &\approx 137\,142 \, \text{(Människor)}
+	       &\approx 137\,142 \\
+	       &\approx 137\,000 \, \text{(Människor)}
 \end{align*}
 
 \subsection*{Del (b)}
@@ -305,11 +351,33 @@ tillämpas funktionen \( g(a,b) \) från Påstånde 1, där \( a = 5 \) och \( b
 		- \ln{\left(\frac{10 + 2}{5 + 2}\right)}\right) \\
 	       &= \frac{760\,000\pi \cdot \ln{\left(\frac{18}{13}\right)}}{3} 
 	       - \frac{190\,000\pi \cdot \ln{\left(\frac{12}{7}\right)}}{3} \\
-	       &\approx 151\,751 \, \text{(Människor)}
+	       &\approx 151\,751 \\ 
+	       &\approx 152\,000 \, \text{(Människor)}
 \end{align*}
 
 \section*{Svar}
-\textbf{Del (a)}: $\approx 137\,142 \, \text{(Människor)}$ \\
-\textbf{Del (b)}: $\approx 151\,751 \, \text{(Människor)}$
+\textbf{Del (a)}: $g(0, 5) \approx 137\,000 \, \text{(Människor)}$ \\
+\textbf{Del (b)}: $g(5, 10) \approx 152\,000 \, \text{(Människor)}$
+
+\section*{Diskussion av resultatet}
+En storstad enligt Wikipedia defineras som stad med fler än \( 100\,000 \)
+invånare. Föreställar man sig ett storstad därefeter svaret på (a) och (b) kan
+vara rimliga. Ja, de är nära varandra men arean mellan 5 och 10 km är 3 gånger
+större än mellan 0 och 5 km. Men tätheten är större mellan 0 och 5 km jämfört
+med 5 till 10 km.
+\begin{align*}
+	A_{\text{0-5}} &= 2\pi r^2	\Rightarrow 2\pi 5^2 = 50\pi
+\, \left( \si{\kilo\meter}^2 \right) \\
+	A_{\text{5-10}} &= 2\pi 10^2 - 2\pi 5^2 \\
+			&= 2\pi(100 - 25) \\
+			&= 150\pi \, \left( \si{\kilo\meter}^2 \right)
+\end{align*}
+
+\newpage
+\appendix
+\section{Python kod}
+\label{app:python_code}
+\lstinputlisting[language=Python, firstline=2, lastline=40]{../simulations/approx.py}
+
 
 \end{document}
